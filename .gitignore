@@ -13,3 +13,14 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Intellij specific files
+.idea/
+*.iml
+
+# kubetest2 default artifacts
+_artifacts/
+bin/
+
+# VisualStudio Code specific files
+.vscode/
