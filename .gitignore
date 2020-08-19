@@ -24,3 +24,5 @@ bin/
 
 # VisualStudio Code specific files
 .vscode/
+
+.terraform/
