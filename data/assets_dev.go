@@ -1,4 +1,4 @@
-// +build !release
+// +build dev
 
 package data
 
@@ -13,7 +13,7 @@ var Assets http.FileSystem
 func init() {
 	dir := os.Getenv("TF_DATA")
 	if dir == "" {
-		dir = "data"
+		dir = "data/data"
 	}
 	Assets = http.Dir(dir)
 }

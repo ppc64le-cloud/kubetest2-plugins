@@ -8,6 +8,7 @@ kubetest2-powervs is a deployer created for deploying on [IBM Cloud Power Virtua
 
 ## Development
 ```shell
-$ export TF_DATA=`pwd`/data/data
+$ MODE=dev ./hack/build.sh
+$ export TF_DATA=`pwd`/data
 $ ./bin/kubetest2-tf
 ```
