@@ -1,18 +1,19 @@
-// +build generate
+// +build ignore
 
 package main
 
 import (
 	"log"
+	"net/http"
 
-	"github.com/ppc64le-cloud/kubetest2-plugins/data"
 	"github.com/shurcooL/vfsgen"
 )
 
 func main() {
-	err := vfsgen.Generate(data.Assets, vfsgen.Options{
+
+	err := vfsgen.Generate( http.Dir("data"), vfsgen.Options{
 		PackageName:  "data",
-		BuildTags:    "release",
+		BuildTags:    "!dev",
 		VariableName: "Assets",
 	})
 	if err != nil {

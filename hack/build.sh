@@ -13,10 +13,11 @@ release)
 	TAGS="${TAGS} release"
 	if test "${SKIP_GENERATION}" != y
 	then
-		go generate -tags "${TAGS}" ./data
+		go generate ./data
 	fi
 	;;
 dev)
+  TAGS="dev"
 	;;
 *)
 	echo "unrecognized mode: ${MODE}" >&2
