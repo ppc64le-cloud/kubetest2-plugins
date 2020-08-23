@@ -4,7 +4,7 @@ type TFVars struct {
 	ResourceGroup string  `json:"powervs_resource_group"`
 	DNSName       string  `json:"powervs_dns"`
 	DNSZone       string  `json:"powervs_dns_zone"`
-	Apikey        string  `json:"powervs_api_key"`
+	Apikey        string  `json:"powervs_api_key,omitempty"`
 	Region        string  `json:"powervs_region"`
 	Zone          string  `json:"powervs_zone"`
 	ServiceID     string  `json:"powervs_service_id"`
