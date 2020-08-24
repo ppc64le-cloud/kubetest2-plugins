@@ -8,4 +8,5 @@ type TFVars struct {
 	WorkersCount   int    `json:"workers_count"`
 	BootstrapToken string `json:"bootstrap_token"`
 	KubeconfigPath string `json:"kubeconfig_path"`
+	SSHPrivateKey  string `json:"ssh_private_key"`
 }

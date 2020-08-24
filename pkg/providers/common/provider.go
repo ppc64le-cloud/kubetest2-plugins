@@ -46,6 +46,9 @@ func (p *Provider) BindFlags(flags *pflag.FlagSet) {
 	flags.StringVar(
 		&p.KubeconfigPath, "kubeconfig-path", "", "File path to write the kubeconfig content for the deployed cluster(default: data folder where terraform files copied)",
 	)
+	flags.StringVar(
+		&p.SSHPrivateKey, "ssh-private-key", "~/.ssh/id_rsa", "SSH Private Key file's complete path to login to the deployed vms",
+	)
 }
 
 func (p *Provider) DumpConfig(dir string) error {
