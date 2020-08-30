@@ -11,13 +11,27 @@ data "ibm_dns_zones" "ds_pdnszone" {
   instance_id = data.ibm_resource_instance.test-pdns-instance.guid
 }
 
+data "ibm_pi_network" "existing_net" {
+  count                = var.powervs_network_name == "" ? 0 : 1
+  pi_network_name      = var.powervs_network_name
+  pi_cloud_instance_id = var.powervs_service_id
+}
+
+resource "ibm_pi_network" "public_network" {
+  count                   = var.powervs_network_name == "" ? 1 : 0
+  pi_network_name           = "${var.cluster_name}-pub-net"
+  pi_cloud_instance_id      = var.powervs_service_id
+  pi_network_type           = "pub-vlan"
+  pi_dns = [ "9.9.9.9", "8.8.8.8"]
+}
+
 module "master" {
   source = "./instance"
 
   ibmcloud_api_key = var.powervs_api_key
   image_name = var.powervs_image_name
   memory = var.powervs_memory
-  networks = [var.powervs_network_name]
+  networks = [var.powervs_network_name == "" ? ibm_pi_network.public_network[0].pi_network_name : data.ibm_pi_network.existing_net[0].pi_network_name]
   powervs_service_instance_id = var.powervs_service_id
   processors = var.powervs_processors
   ssh_key_name = var.powervs_ssh_key
@@ -34,7 +48,7 @@ module "workers" {
   ibmcloud_api_key = var.powervs_api_key
   image_name = var.powervs_image_name
   memory = var.powervs_memory
-  networks = [var.powervs_network_name]
+  networks = [var.powervs_network_name == "" ? ibm_pi_network.public_network[0].pi_network_name : data.ibm_pi_network.existing_net[0].pi_network_name]
   powervs_service_instance_id = var.powervs_service_id
   processors = var.powervs_processors
   ssh_key_name = var.powervs_ssh_key
@@ -107,7 +121,7 @@ resource "null_resource" "wait-for-workers-completes" {
 }
 
 resource "null_resource" "kubeadm-join-worker" {
-  depends_on = [null_resource.wait-for-workers-completes]
+  depends_on = [null_resource.wait-for-workers-completes, null_resource.kubeadm-init]
   count = var.workers_count
   connection {
     type = "ssh"
