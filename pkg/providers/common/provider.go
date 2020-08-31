@@ -38,7 +38,7 @@ func (p *Provider) BindFlags(flags *pflag.FlagSet) {
 		&p.ApiServerPort, "apiserver-port", 992, "API Server Port Address",
 	)
 	flags.IntVar(
-		&p.WorkersCount, "workers-count", 1, "Numbers of workers in the k8s cluster",
+		&p.WorkersCount, "workers-count", 0, "Numbers of workers in the k8s cluster",
 	)
 	flags.StringVar(
 		&p.BootstrapToken, "bootstrap-token", "", "Kubeadm bootstrap token used for installing and joining the cluster(default: random generated token in [a-z0-9]{6}\\.[a-z0-9]{16} format)",
