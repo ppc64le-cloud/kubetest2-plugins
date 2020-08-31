@@ -104,6 +104,25 @@ resource "null_resource" "kubeadm-init" {
   }
 }
 
+resource "null_resource" "master-untaint" {
+  depends_on = [null_resource.kubeadm-init]
+  count = var.workers_count == 0 ? 1 : 0
+  connection {
+    type = "ssh"
+    user = "root"
+    host = module.master.addresses[0][0].external_ip
+    private_key = file(var.ssh_private_key)
+    timeout = "15m"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "KUBECONFIG=/etc/kubernetes/admin.conf kubectl taint nodes --all node-role.kubernetes.io/master-"
+    ]
+  }
+}
+
+
+
 resource "null_resource" "wait-for-workers-completes" {
   count = var.workers_count
   connection {
