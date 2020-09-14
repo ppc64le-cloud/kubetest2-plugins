@@ -11,7 +11,7 @@ import (
 
 func main() {
 
-	err := vfsgen.Generate( http.Dir("data"), vfsgen.Options{
+	err := vfsgen.Generate(http.Dir("data"), vfsgen.Options{
 		PackageName:  "data",
 		BuildTags:    "!dev",
 		VariableName: "Assets",
