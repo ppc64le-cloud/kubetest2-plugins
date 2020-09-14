@@ -63,6 +63,25 @@ func Destroy(dir string, platform string, autoApprove bool, extraArgs ...string)
 	return nil
 }
 
+func Output(dir string, platform string, extraArgs ...string) (output string, err error) {
+	err = unpackAndInit(dir, platform)
+	if err != nil {
+		return "", err
+	}
+
+	defaultArgs := []string{
+		fmt.Sprintf("-state=%s", filepath.Join(dir, StateFileName)),
+		fmt.Sprint("-no-color"),
+	}
+	args := append(defaultArgs, extraArgs...)
+
+	op, exitCode := exec.Output(dir, args)
+	if exitCode != 0 {
+		return "", errors.New("failed to terraform output")
+	}
+	return op, nil
+}
+
 // unpack unpacks the platform-specific Terraform modules into the
 // given directory.
 func unpack(dir string, platform string) (err error) {

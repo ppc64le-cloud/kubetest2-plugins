@@ -1,21 +1,46 @@
 package deployer
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/powervs"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/terraform"
 	"github.com/spf13/pflag"
+	"k8s.io/klog"
+	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sigs.k8s.io/kubetest2/pkg/types"
+	"strings"
 	"sync"
+	"text/template"
 )
 
 const (
-	Name = "tf"
+	Name              = "tf"
+	inventoryTemplate = `[masters]
+{{range .Masters}}{{.}}
+{{end}}
+[workers]
+{{range .Workers}}{{.}}
+{{end}}
+`
 )
+
+type AnsibleInventory struct {
+	Masters []string
+	Workers []string
+}
+
+func (i *AnsibleInventory) addMachine(mtype string, value string) {
+	v := reflect.ValueOf(i).Elem().FieldByName(mtype)
+	if v.IsValid() {
+		v.Set(reflect.Append(v, reflect.ValueOf(value)))
+	}
+}
 
 type deployer struct {
 	commonOptions types.Options
@@ -97,6 +122,42 @@ func (d *deployer) Up() error {
 	}
 
 	fmt.Printf("terraform state at: %s\n", path)
+
+	inventory := AnsibleInventory{}
+	for _, machineType := range []string{"Masters", "Workers"} {
+		var tmp []interface{}
+		op, err := terraform.Output(d.tmpDir, "powervs", "-json", strings.ToLower(machineType))
+
+		if err != nil {
+			return fmt.Errorf("terraform.Output failed: %v", err)
+		}
+		klog.Infof("%s: %s", strings.ToLower(machineType), op)
+		err = json.Unmarshal([]byte(op), &tmp)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal: %v", err)
+		}
+		for index, _ := range tmp {
+			inventory.addMachine(machineType, tmp[index].(string))
+		}
+	}
+	klog.Infof("inventory: %v", inventory)
+	t := template.New("Ansible inventory file")
+
+	t, err = t.Parse(inventoryTemplate)
+	if err != nil {
+		return fmt.Errorf("template parse failed: %v", err)
+	}
+
+	inventoryFile, err := os.Create(filepath.Join(d.tmpDir, "hosts"))
+	if err != nil {
+		log.Println("create file: ", err)
+		return fmt.Errorf("failed to create inventory file: %v", err)
+	}
+
+	err = t.Execute(inventoryFile, inventory)
+	if err != nil {
+		return fmt.Errorf("template execute failed: %v", err)
+	}
 
 	if err = setKubeconfig(); err != nil {
 		return fmt.Errorf("failed to setKubeconfig: %v", err)
