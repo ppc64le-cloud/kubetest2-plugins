@@ -12,3 +12,7 @@ $ MODE=dev ./hack/build.sh
 $ export TF_DATA=`pwd`/data
 $ ./bin/kubetest2-tf
 ```
+### Update the Submodule
+```shell script
+$ UPDATE_SUBMODULE=true ./hack/build.sh
+```
