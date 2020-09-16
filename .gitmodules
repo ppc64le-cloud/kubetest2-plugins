@@ -1,0 +1,3 @@
+[submodule "data/data/k8s-ansible"]
+	path = data/data/k8s-ansible
+	url = https://github.com/ppc64le-cloud/k8s-ansible.git
