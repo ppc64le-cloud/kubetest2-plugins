@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/tfvars"
@@ -84,6 +85,12 @@ func (p *Provider) Initialize() error {
 	}
 	if p.KubeconfigPath == "" {
 		p.KubeconfigPath = path.Join(p.ClusterName, "kubeconfig")
+	}
+	// Added an absolute path to behave ansible properly while copying back the content from remote machine
+	var err error
+	p.KubeconfigPath, err = filepath.Abs(p.KubeconfigPath)
+	if err != nil {
+		return fmt.Errorf("errored while getting absolute path for kubeconfig file")
 	}
 	return nil
 }

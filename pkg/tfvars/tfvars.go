@@ -9,4 +9,5 @@ type TFVars struct {
 	BootstrapToken string `json:"bootstrap_token"`
 	KubeconfigPath string `json:"kubeconfig_path"`
 	SSHPrivateKey  string `json:"ssh_private_key"`
+	ExtraCerts     string `json:"extra_cert,omitempty"`
 }

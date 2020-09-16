@@ -3,13 +3,17 @@ package deployer
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/ansible"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/powervs"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/terraform"
 	"github.com/spf13/pflag"
-	"k8s.io/klog"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog/v2"
 	"log"
+	"net"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -159,18 +163,50 @@ func (d *deployer) Up() error {
 		return fmt.Errorf("template execute failed: %v", err)
 	}
 
-	if err = setKubeconfig(); err != nil {
+	common.CommonProvider.ExtraCerts = strings.Join(inventory.Masters,",")
+
+	commonJSON, err := json.Marshal(common.CommonProvider)
+	if err != nil {
+		return fmt.Errorf("failed to marshal provider into JSON: %v", err)
+	}
+	klog.Infof("commonJSON: %v", string(commonJSON))
+
+	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"),string(commonJSON), "install-k8s.yml")
+	if err != nil{
+		return fmt.Errorf("failed to run ansible playbook: %v\n with exit code: %d", err, exitcode)
+	}
+
+	if err = setKubeconfig(inventory.Masters[0]); err != nil {
 		return fmt.Errorf("failed to setKubeconfig: %v", err)
 	}
 	fmt.Printf("KUBECONFIG set to: %s\n", os.Getenv("KUBECONFIG"))
 	return nil
 }
 
-func setKubeconfig() error {
+// setKubeconfig overrides the server IP addresses in the kubeconfig and set the KUBECONFIG environment
+func setKubeconfig(host string) error {
 	_, err := os.Stat(common.CommonProvider.KubeconfigPath)
 	if err != nil {
 		return fmt.Errorf("failed to locate the kubeconfig file: %v", err)
 	}
+
+	config, err := clientcmd.LoadFromFile(common.CommonProvider.KubeconfigPath)
+	if err != nil {
+		fmt.Printf("failed to load the kuneconfig file")
+	}
+	for i, _ := range config.Clusters {
+		surl, err := url.Parse(config.Clusters[i].Server)
+		if err != nil {
+			return fmt.Errorf("failed while Parsing the URL: %s", config.Clusters[i].Server)
+		}
+		_, port, err := net.SplitHostPort(surl.Host)
+		if err != nil {
+			return fmt.Errorf("errored while SplitHostPort")
+		}
+		surl.Host = net.JoinHostPort(host, port)
+		config.Clusters[i].Server = surl.String()
+	}
+	clientcmd.WriteToFile(*config, common.CommonProvider.KubeconfigPath)
 	kubecfgAbsPath, err := filepath.Abs(common.CommonProvider.KubeconfigPath)
 	if err != nil {
 		return fmt.Errorf("failed to create absolute path for the kubeconfig file: %v", err)
