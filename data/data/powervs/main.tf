@@ -1,16 +1,3 @@
-data "ibm_resource_group" "rg" {
-  name = var.powervs_resource_group
-}
-
-data "ibm_resource_instance" "test-pdns-instance" {
-  name = var.powervs_dns
-  resource_group_id = data.ibm_resource_group.rg.id
-}
-
-data "ibm_dns_zones" "ds_pdnszone" {
-  instance_id = data.ibm_resource_instance.test-pdns-instance.guid
-}
-
 data "ibm_pi_network" "existing_net" {
   count                = var.powervs_network_name == "" ? 0 : 1
   pi_network_name      = var.powervs_network_name
