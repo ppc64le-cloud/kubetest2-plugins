@@ -223,7 +223,11 @@ func (d *deployer) Down() error {
 	}
 	err := terraform.Destroy(d.tmpDir, "powervs", autoApprove)
 	if err != nil {
-		return fmt.Errorf("terraform.Destroy failed: %v", err)
+		if common.CommonProvider.IgnoreDestroy {
+			klog.Infof("terraform.Destroy failed: %v", err)
+		} else {
+			return fmt.Errorf("terraform.Destroy failed: %v", err)
+		}
 	}
 	return nil
 }

@@ -50,6 +50,9 @@ func (p *Provider) BindFlags(flags *pflag.FlagSet) {
 	flags.StringVar(
 		&p.SSHPrivateKey, "ssh-private-key", "~/.ssh/id_rsa", "SSH Private Key file's complete path to login to the deployed vms",
 	)
+	flags.BoolVar(
+		&p.IgnoreDestroy, "ignore-destroy-errors", false, "Ignore errors during the destroy if any",
+	)
 }
 
 func (p *Provider) DumpConfig(dir string) error {
