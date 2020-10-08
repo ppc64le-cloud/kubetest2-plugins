@@ -122,6 +122,12 @@ func (d *deployer) Up() error {
 
 	path, err := terraform.Apply(d.tmpDir, "powervs", autoApprove)
 	if err != nil {
+		op, oerr := terraform.Output(d.tmpDir, "powervs")
+
+		if oerr != nil {
+			return fmt.Errorf("terraform.Output failed: %v", oerr)
+		}
+		fmt.Printf("Terraform Output:\n%s", op)
 		return fmt.Errorf("terraform.Apply failed: %v", err)
 	}
 
@@ -163,7 +169,7 @@ func (d *deployer) Up() error {
 		return fmt.Errorf("template execute failed: %v", err)
 	}
 
-	common.CommonProvider.ExtraCerts = strings.Join(inventory.Masters,",")
+	common.CommonProvider.ExtraCerts = strings.Join(inventory.Masters, ",")
 
 	commonJSON, err := json.Marshal(common.CommonProvider)
 	if err != nil {
@@ -171,8 +177,8 @@ func (d *deployer) Up() error {
 	}
 	klog.Infof("commonJSON: %v", string(commonJSON))
 
-	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"),string(commonJSON), "install-k8s.yml")
-	if err != nil{
+	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"), string(commonJSON), "install-k8s.yml")
+	if err != nil {
 		return fmt.Errorf("failed to run ansible playbook: %v\n with exit code: %d", err, exitcode)
 	}
 
