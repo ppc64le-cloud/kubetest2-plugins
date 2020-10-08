@@ -17,3 +17,8 @@ output "workers_private" {
   value = module.workers.addresses[*][0].ip
   description = "k8s worker nodes private IP addresses"
 }
+
+output "network" {
+  value = ibm_pi_network.public_network
+  description = "Network used for the deployment"
+}
