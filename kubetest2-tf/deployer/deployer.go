@@ -80,6 +80,7 @@ var _ types.Deployer = &deployer{}
 var (
 	ignoreClusterDir bool
 	autoApprove      bool
+	retryOnTfFailure int
 )
 
 func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
@@ -97,6 +98,9 @@ func bindFlags(d *deployer) *pflag.FlagSet {
 	)
 	flags.BoolVar(
 		&autoApprove, "auto-approve", false, "Terraform Auto Approve",
+	)
+	flags.IntVar(
+		&retryOnTfFailure, "retry-on-tf-failure", 1, "Retry on Terraform Apply Failure",
 	)
 	flags.MarkHidden("ignore-cluster-dir")
 	common.CommonProvider.BindFlags(flags)
@@ -120,19 +124,25 @@ func (d *deployer) Up() error {
 		return fmt.Errorf("failed to dumpconfig to: %s and err: %+v", d.tmpDir, err)
 	}
 
-	path, err := terraform.Apply(d.tmpDir, "powervs", autoApprove)
-	if err != nil {
-		op, oerr := terraform.Output(d.tmpDir, "powervs")
+	for i := 0; i <= retryOnTfFailure; i++ {
+		path, err := terraform.Apply(d.tmpDir, "powervs", autoApprove)
+		if err != nil {
+			op, oerr := terraform.Output(d.tmpDir, "powervs")
 
-		if oerr != nil {
-			return fmt.Errorf("terraform.Output failed: %v", oerr)
+			if oerr != nil {
+				if i == retryOnTfFailure {
+					return fmt.Errorf("terraform.Output failed: %v", oerr)
+				}
+				continue
+			}
+			fmt.Printf("Terraform Output:\n%s", op)
+			if i == retryOnTfFailure {
+				return fmt.Errorf("terraform.Apply failed: %v", err)
+			}
 		}
-		fmt.Printf("Terraform Output:\n%s", op)
-		return fmt.Errorf("terraform.Apply failed: %v", err)
+		fmt.Printf("terraform state at: %s\n", path)
+		break
 	}
-
-	fmt.Printf("terraform state at: %s\n", path)
-
 	inventory := AnsibleInventory{}
 	for _, machineType := range []string{"Masters", "Workers"} {
 		var tmp []interface{}
