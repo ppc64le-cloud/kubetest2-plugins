@@ -78,9 +78,10 @@ func (d *deployer) initialize() error {
 var _ types.Deployer = &deployer{}
 
 var (
-	ignoreClusterDir bool
-	autoApprove      bool
-	retryOnTfFailure int
+	ignoreClusterDir      bool
+	autoApprove           bool
+	retryOnTfFailure      int
+	breakKubetestOnUpFail bool
 )
 
 func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
@@ -101,6 +102,9 @@ func bindFlags(d *deployer) *pflag.FlagSet {
 	)
 	flags.IntVar(
 		&retryOnTfFailure, "retry-on-tf-failure", 1, "Retry on Terraform Apply Failure",
+	)
+	flags.BoolVar(
+		&breakKubetestOnUpFail, "break-kubetest-on-upfail", false, "Breaks kubetest2 when up fails",
 	)
 	flags.MarkHidden("ignore-cluster-dir")
 	common.CommonProvider.BindFlags(flags)
@@ -131,13 +135,24 @@ func (d *deployer) Up() error {
 
 			if oerr != nil {
 				if i == retryOnTfFailure {
-					return fmt.Errorf("terraform.Output failed: %v", oerr)
+					if !breakKubetestOnUpFail {
+						return fmt.Errorf("terraform.Apply and terraform.Output failed: %v", oerr)
+					}
+					klog.Infof("terraform Apply and terraform Output failed. Look into it and delete the resources")
+					klog.Infof("terraform.Apply failed: %v", err)
+					klog.Infof("terraform.Output failed: %v", oerr)
+					os.Exit(1)
 				}
 				continue
 			}
 			fmt.Printf("Terraform Output:\n%s", op)
 			if i == retryOnTfFailure {
-				return fmt.Errorf("terraform.Apply failed: %v", err)
+				if !breakKubetestOnUpFail {
+					return fmt.Errorf("terraform.Apply failed: %v", err)
+				}
+				klog.Infof("terraform Apply failed. Look into it and delete the resources")
+				klog.Infof("terraform.Apply failed: %v", err)
+				os.Exit(1)
 			}
 		}
 		fmt.Printf("terraform state at: %s\n", path)
