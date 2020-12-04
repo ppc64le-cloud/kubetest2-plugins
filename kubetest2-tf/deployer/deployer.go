@@ -130,33 +130,23 @@ func (d *deployer) Up() error {
 
 	for i := 0; i <= retryOnTfFailure; i++ {
 		path, err := terraform.Apply(d.tmpDir, "powervs", autoApprove)
+		op, oerr := terraform.Output(d.tmpDir, "powervs")
 		if err != nil {
-			op, oerr := terraform.Output(d.tmpDir, "powervs")
-
-			if oerr != nil {
-				if i == retryOnTfFailure {
-					if !breakKubetestOnUpFail {
-						return fmt.Errorf("terraform.Apply and terraform.Output failed: %v", oerr)
-					}
-					klog.Infof("terraform Apply and terraform Output failed. Look into it and delete the resources")
-					klog.Infof("terraform.Apply failed: %v", err)
-					klog.Infof("terraform.Output failed: %v", oerr)
-					os.Exit(1)
-				}
-				continue
-			}
-			fmt.Printf("Terraform Output:\n%s", op)
 			if i == retryOnTfFailure {
+				fmt.Printf("terraform.Output: %s\nterraform.Output error: %v\n", op, oerr)
 				if !breakKubetestOnUpFail {
-					return fmt.Errorf("terraform.Apply failed: %v", err)
+					return fmt.Errorf("Terraform Apply failed. Error: %v\n", err)
 				}
-				klog.Infof("terraform Apply failed. Look into it and delete the resources")
-				klog.Infof("terraform.Apply failed: %v", err)
+				klog.Infof("Terraform Apply failed. Look into it and delete the resources")
+				klog.Infof("terraform.Apply error: %v", err)
 				os.Exit(1)
 			}
+			continue
+		} else {
+			fmt.Printf("terraform.Output: %s\nterraform.Output error: %v\n", op, oerr)
+			fmt.Printf("Terraform State at: %s\n", path)
+			break
 		}
-		fmt.Printf("terraform state at: %s\n", path)
-		break
 	}
 	inventory := AnsibleInventory{}
 	for _, machineType := range []string{"Masters", "Workers"} {
