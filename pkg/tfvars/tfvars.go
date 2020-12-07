@@ -3,6 +3,7 @@ package tfvars
 type TFVars struct {
 	ReleaseMarker  string `json:"release_marker"`
 	BuildVersion   string `json:"build_version"`
+	Runtime        string `json:"runtime,omitempty"`
 	StorageServer  string `json:"s3_server,omitempty"`
 	StorageBucket  string `json:"bucket,omitempty"`
 	StorageDir     string `json:"directory,omitempty"`
