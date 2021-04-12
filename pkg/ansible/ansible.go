@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	ansibleDataDir = "k8s-ansible"
+	ansibleDataDir    = "k8s-ansible"
 )
 
 func Playbook(dir, inventory, extraVars, playbook string) (int, error) {
@@ -30,11 +30,17 @@ func Playbook(dir, inventory, extraVars, playbook string) (int, error) {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	if err := c.Run(); err != nil {
+		// Try to get the exit code
 		if exitError, ok := err.(*goexec.ExitError); ok {
 			return exitError.ExitCode(), err
+		} else {
+			// This will happen if ansible is not available in $PATH
+			return 1, err
 		}
+	} else {
+		// successful execution of ansible playbook
+		return 0, nil
 	}
-	return 0, nil
 }
 
 func unpackAnsible(dir string) error {
