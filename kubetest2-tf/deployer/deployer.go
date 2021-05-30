@@ -82,6 +82,7 @@ var (
 	autoApprove           bool
 	retryOnTfFailure      int
 	breakKubetestOnUpFail bool
+	extraVars map[string]string
 )
 
 func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
@@ -105,6 +106,9 @@ func bindFlags(d *deployer) *pflag.FlagSet {
 	)
 	flags.BoolVar(
 		&breakKubetestOnUpFail, "break-kubetest-on-upfail", false, "Breaks kubetest2 when up fails",
+	)
+	flags.StringToStringVar(
+		&extraVars, "extra-vars", nil, "Passes extra-vars to ansible playbook, enter a string of key=value pairs",
 	)
 	flags.MarkHidden("ignore-cluster-dir")
 	common.CommonProvider.BindFlags(flags)
@@ -191,8 +195,21 @@ func (d *deployer) Up() error {
 		return fmt.Errorf("failed to marshal provider into JSON: %v", err)
 	}
 	klog.Infof("commonJSON: %v", string(commonJSON))
+	//Unmarshalling commonJSON into map to add extra-vars
+	final := map[string]interface{}{}
+	json.Unmarshal([]byte(commonJSON), &final)
+	//Iterating through extra-vars and adding them to map
+	for k := range extraVars {
+		final[k] = extraVars[k]
+	}
+	//Marshalling back the map to JSON
+	finalJSON, err := json.Marshal(final)
+	if err != nil {
+		return fmt.Errorf("failed to marshal provider into JSON: %v", err)
+	}
+	klog.Infof("finalJSON with extra vars: %v", string(finalJSON))
 
-	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"), string(commonJSON), "install-k8s.yml")
+	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"), string(finalJSON), "install-k8s.yml")
 	if err != nil {
 		return fmt.Errorf("failed to run ansible playbook: %v\n with exit code: %d", err, exitcode)
 	}
