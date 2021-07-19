@@ -82,6 +82,7 @@ var (
 	autoApprove           bool
 	retryOnTfFailure      int
 	breakKubetestOnUpFail bool
+	playbook              string
 	extraVars map[string]string
 )
 
@@ -106,6 +107,9 @@ func bindFlags(d *deployer) *pflag.FlagSet {
 	)
 	flags.BoolVar(
 		&breakKubetestOnUpFail, "break-kubetest-on-upfail", false, "Breaks kubetest2 when up fails",
+	)
+	flags.StringVar(
+		&playbook, "playbook", "install-k8s.yml", "name of ansible playbook to be run",
 	)
 	flags.StringToStringVar(
 		&extraVars, "extra-vars", nil, "Passes extra-vars to ansible playbook, enter a string of key=value pairs",
@@ -209,7 +213,7 @@ func (d *deployer) Up() error {
 	}
 	klog.Infof("finalJSON with extra vars: %v", string(finalJSON))
 
-	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"), string(finalJSON), "install-k8s.yml")
+	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"), string(finalJSON), playbook)
 	if err != nil {
 		return fmt.Errorf("failed to run ansible playbook: %v\n with exit code: %d", err, exitcode)
 	}
