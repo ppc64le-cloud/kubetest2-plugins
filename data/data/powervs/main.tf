@@ -9,7 +9,7 @@ resource "ibm_pi_network" "public_network" {
   pi_network_name           = "${var.cluster_name}-pub-net"
   pi_cloud_instance_id      = var.powervs_service_id
   pi_network_type           = "pub-vlan"
-  pi_dns = [ "9.9.9.9", "8.8.8.8"]
+  pi_dns = [ "8.8.4.4", "8.8.8.8"]
 }
 
 module "master" {
