@@ -9,12 +9,12 @@ output "workers" {
 }
 
 output "masters_private" {
-  value = module.master.addresses[*][0].ip
+  value = module.master.addresses[*][0].ip_address
   description = "k8s master nodes private IP addresses"
 }
 
 output "workers_private" {
-  value = module.workers.addresses[*][0].ip
+  value = module.workers.addresses[*][0].ip_address
   description = "k8s worker nodes private IP addresses"
 }
 

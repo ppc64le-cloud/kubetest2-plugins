@@ -10,12 +10,10 @@ import (
 
 func _runner(cmd string, dir string, args []string, stdout, stderr io.Writer) int {
 	baseCommand := "terraform"
-	cmdArgs := []string{cmd}
+	cmdArgs := []string{}
+	cmdArgs = append(cmdArgs, "-chdir=./"+dir)
+	cmdArgs = append(cmdArgs, cmd)
 	cmdArgs = append(cmdArgs, args...)
-	// Don't add the directory in the end if command is terraform output
-	if cmd != "output" {
-		cmdArgs = append(cmdArgs, dir)
-	}
 	c := goexec.Command(baseCommand, cmdArgs...)
 
 	c.Stdout = stdout
