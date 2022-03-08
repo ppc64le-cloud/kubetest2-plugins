@@ -41,8 +41,8 @@ variable "shareable" {
     default     = "false"
 }
 
-variable "networks" {
-    description = "List of networks that should be attached to the VM - Create this network before running terraform"
+variable "network" {
+    description = "Network that should be attached to the VM - Create this network before running terraform"
 }
 
 variable "system_type" {

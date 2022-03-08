@@ -1,6 +1,5 @@
-data "ibm_pi_network" "power_networks" {
-    count                = length(var.networks)
-    pi_network_name      = var.networks[count.index]
+data "ibm_pi_network" "power_network" {
+    pi_network_name      = var.network
     pi_cloud_instance_id = var.powervs_service_instance_id
 }
 
@@ -16,9 +15,12 @@ resource "ibm_pi_instance" "pvminstance" {
     pi_instance_name      = var.instance_count == 1 ? var.vm_name : "${var.vm_name}-${count.index}"
     pi_proc_type          = var.proc_type
     pi_image_id           = data.ibm_pi_image.power_images.id
-    pi_network_ids        = data.ibm_pi_network.power_networks.*.id
     pi_key_pair_name      = var.ssh_key_name
     pi_sys_type           = var.system_type
     pi_cloud_instance_id = var.powervs_service_instance_id
     pi_user_data          = var.user_data
+
+    pi_network {
+      network_id = data.ibm_pi_network.power_network.id
+    }
 }
