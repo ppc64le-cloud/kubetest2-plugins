@@ -89,7 +89,7 @@ var (
 func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 	d := &deployer{
 		commonOptions: opts,
-		logsDir:       filepath.Join(opts.ArtifactsDir(), "logs"),
+		logsDir:       filepath.Join(opts.RunDir(), "logs"),
 	}
 	return d, bindFlags(d)
 }
