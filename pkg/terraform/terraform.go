@@ -47,8 +47,6 @@ func Destroy(dir string, platform string, autoApprove bool, extraArgs ...string)
 		"-input=false",
 		fmt.Sprintf("-state=%s", filepath.Join(dir, StateFileName)),
 		fmt.Sprintf("-state-out=%s", filepath.Join(dir, StateFileName)),
-		fmt.Sprintf("-var-file=%s", filepath.Join(dir, platform+".auto.tfvars.json")),
-		fmt.Sprintf("-var-file=%s", filepath.Join(dir, "common.auto.tfvars.json")),
 	}
 	if autoApprove {
 		defaultArgs = append(defaultArgs, "-auto-approve")
