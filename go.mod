@@ -7,7 +7,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	k8s.io/client-go v9.0.0+incompatible
-	k8s.io/klog/v2 v2.60.1
+	k8s.io/klog/v2 v2.70.0
 	sigs.k8s.io/kubetest2 v0.0.0-20220627231032-6745e0214f42
 )
 
