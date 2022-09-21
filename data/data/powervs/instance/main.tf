@@ -19,6 +19,9 @@ resource "ibm_pi_instance" "pvminstance" {
     pi_sys_type           = var.system_type
     pi_cloud_instance_id = var.powervs_service_instance_id
     pi_user_data          = var.user_data
+    # Wait for the WARNING state instead of OK state to save some time because we aren't performing any DLPAR operations
+    # on this LPARS and later in the flow we also have ssh connectivity check to confirm deployed vms are up and running.
+    pi_health_status      = "WARNING"
 
     pi_network {
       network_id = data.ibm_pi_network.power_network.id

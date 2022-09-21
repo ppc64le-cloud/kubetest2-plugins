@@ -49,7 +49,7 @@ resource "null_resource" "wait-for-master-completes" {
     user = "root"
     host = module.master.addresses[0][0].external_ip
     private_key = file(var.ssh_private_key)
-    timeout = "15m"
+    timeout = "20m"
   }
   provisioner "remote-exec" {
     inline = [
