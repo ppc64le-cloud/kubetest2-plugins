@@ -33,6 +33,9 @@ func (p *Provider) BindFlags(flags *pflag.FlagSet) {
 		&p.BuildVersion, "build-version", "", "Kubernetes Build Version",
 	)
 	flags.StringVar(
+                &p.CalicoVersion, "calico-version", "", "Calico Network Version",
+        )
+	flags.StringVar(
 		&p.Runtime, "runtime", "", "Runtime used while installing k8s cluster",
 	)
 	flags.StringVar(

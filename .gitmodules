@@ -1,3 +1,4 @@
 [submodule "data/data/k8s-ansible"]
 	path = data/data/k8s-ansible
-	url = https://github.com/ppc64le-cloud/k8s-ansible.git
+	url = https://github.com/Rajalakshmi-Girish/k8s-ansible.git
+	branch = calico-version-var
