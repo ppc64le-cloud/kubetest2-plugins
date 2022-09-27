@@ -14,15 +14,17 @@ import (
 	"sync"
 	"text/template"
 
+	"github.com/spf13/pflag"
+
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog/v2"
+	"sigs.k8s.io/kubetest2/pkg/types"
+	
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/ansible"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/powervs"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/terraform"
-	"github.com/spf13/pflag"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/klog/v2"
-	"sigs.k8s.io/kubetest2/pkg/types"
 )
 
 const (
@@ -41,7 +43,8 @@ type AnsibleInventory struct {
 	Workers []string
 }
 
-var dependencies = []string{"terraform", "ansible"} // Add additional Linux package dependencies here, used by checkDependencies()
+// Add additional Linux package dependencies here, used by checkDependencies()
+var dependencies = []string{"terraform", "ansible"}
 
 func (i *AnsibleInventory) addMachine(mtype string, value string) {
 	v := reflect.ValueOf(i).Elem().FieldByName(mtype)
