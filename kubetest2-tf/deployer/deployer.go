@@ -3,24 +3,28 @@ package deployer
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"sync"
+	"text/template"
+
+	"github.com/spf13/pflag"
+
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog/v2"
+	"sigs.k8s.io/kubetest2/pkg/types"
+	
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/ansible"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/powervs"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/terraform"
-	"github.com/spf13/pflag"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/klog/v2"
-	"log"
-	"net"
-	"net/url"
-	"os"
-	"path/filepath"
-	"reflect"
-	"sigs.k8s.io/kubetest2/pkg/types"
-	"strings"
-	"sync"
-	"text/template"
 )
 
 const (
@@ -38,6 +42,9 @@ type AnsibleInventory struct {
 	Masters []string
 	Workers []string
 }
+
+// Add additional Linux package dependencies here, used by checkDependencies()
+var dependencies = []string{"terraform", "ansible"}
 
 func (i *AnsibleInventory) addMachine(mtype string, value string) {
 	v := reflect.ValueOf(i).Elem().FieldByName(mtype)
@@ -61,6 +68,10 @@ func (d *deployer) init() error {
 }
 
 func (d *deployer) initialize() error {
+	fmt.Println("Check if package dependencies are installed in the environment")
+	if err := d.checkDependencies(); err != nil {
+		return err
+	}
 	d.provider = powervs.PowerVSProvider
 	common.CommonProvider.Initialize()
 	d.tmpDir = common.CommonProvider.ClusterName
@@ -83,7 +94,7 @@ var (
 	retryOnTfFailure      int
 	breakKubetestOnUpFail bool
 	playbook              string
-	extraVars map[string]string
+	extraVars             map[string]string
 )
 
 func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
@@ -284,4 +295,15 @@ func (d *deployer) DumpClusterLogs() error {
 
 func (d *deployer) Build() error {
 	panic("implement me")
+}
+
+// checkDependencies determines if the required packages are installed before
+// the test execution begins, providing a fail-fast route for exit if the packages are not found.
+func (d *deployer) checkDependencies() error {
+	for _, dependency := range dependencies {
+		if _, err := exec.LookPath(dependency); err != nil {
+			return fmt.Errorf("failed to find %s in the test environment: %s", dependency, err)
+		}
+	}
+	return nil
 }
