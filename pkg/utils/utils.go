@@ -1,15 +1,21 @@
 package utils
 
 import (
-	"fmt"
-	"github.com/lucasjones/reggen"
+	"math/rand"
+	"time"
 )
 
-// RandString generates n number of random char string
-func RandString(n int) (string, error) {
-	return reggen.Generate(fmt.Sprintf("[a-z]{%d}", n), 2)
-}
+// aASCII - the ASCII value of letter 'a'
+const aASCII = 97
 
-func GenerateBootstrapToken() (string, error) {
-	return reggen.Generate("[a-z0-9]{6}\\.[a-z0-9]{16}", 1)
+// RandString returns a string of lower-case alphabets of required length.
+// The random string generated depends on seed, and is not cryptographically secure.
+func RandString(length int) string {
+	var genString string
+	rand.Seed(time.Now().UnixNano())
+	for ; length > 0; length-- {
+		randChar := rand.Intn(26) + aASCII
+		genString += string(rune(randChar))
+	}
+	return genString
 }
