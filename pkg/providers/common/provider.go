@@ -91,7 +91,7 @@ func (p *Provider) Initialize() error {
 		p.ClusterName = "k8s-cluster-" + randPostFix
 	}
 	if p.BootstrapToken == "" {
-		bootstrapToken, err := bootstrap_util.GenerateBootstrapToken()
+		bootstrapToken, err := bootstraputil.GenerateBootstrapToken()
 		if err != nil {
 			return fmt.Errorf("failed to generate a random string, error: %v", err)
 		}
