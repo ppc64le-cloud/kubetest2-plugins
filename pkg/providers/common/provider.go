@@ -11,6 +11,8 @@ import (
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/tfvars"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/utils"
 	"github.com/spf13/pflag"
+
+	bootstraputil "k8s.io/cluster-bootstrap/token/util"
 )
 
 const (
@@ -85,14 +87,11 @@ func (p *Provider) DumpConfig(dir string) error {
 
 func (p *Provider) Initialize() error {
 	if p.ClusterName == "" {
-		randPostFix, err := utils.RandString(6)
-		if err != nil {
-			return fmt.Errorf("failed to generate a random string, error: %v", err)
-		}
+		randPostFix := utils.RandString(6)
 		p.ClusterName = "k8s-cluster-" + randPostFix
 	}
 	if p.BootstrapToken == "" {
-		bootstrapToken, err := utils.GenerateBootstrapToken()
+		bootstrapToken, err := bootstraputil.GenerateBootstrapToken()
 		if err != nil {
 			return fmt.Errorf("failed to generate a random string, error: %v", err)
 		}
