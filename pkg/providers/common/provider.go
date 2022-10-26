@@ -12,7 +12,7 @@ import (
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/utils"
 	"github.com/spf13/pflag"
 
-	bootstrap_util "k8s.io/cluster-bootstrap/token/util"
+	bootstraputil "k8s.io/cluster-bootstrap/token/util"
 )
 
 const (
