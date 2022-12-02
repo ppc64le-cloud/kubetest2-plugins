@@ -1,15 +1,25 @@
 package data
 
 import (
+	"embed"
+	"fmt"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 )
 
-// Unpack unpacks the assets from this package into a target directory.
-func Unpack(base string, uri string) (err error) {
-	file, err := Assets.Open(uri)
+var (
+	//go:embed k8s-ansible powervs config.tf
+	dir embed.FS
+)
+
+// Unpack handles copying out the embedded files from the binary to the destination.
+// Accepts extractPath, which is the directory to extract to, on host.
+// resPath holds the resource to be copied over from the binary to the host.
+
+func Unpack(extractPath, resPath string) error {
+	file, err := dir.Open(resPath)
+
 	if err != nil {
 		return err
 	}
@@ -21,24 +31,25 @@ func Unpack(base string, uri string) (err error) {
 	}
 
 	if info.IsDir() {
-		os.Mkdir(base, 0777)
-		children, err := file.Readdir(0)
-		if err != nil {
-			return err
+		if err := os.MkdirAll(extractPath, 0777); err != nil {
+			return fmt.Errorf("cannot create directory - %v", err)
 		}
 		file.Close()
 
-		for _, childInfo := range children {
-			name := childInfo.Name()
-			err = Unpack(filepath.Join(base, name), path.Join(uri, name))
-			if err != nil {
+		files, err := dir.ReadDir(resPath)
+		if err != nil {
+			return fmt.Errorf("cannot read the provided directory - %v", err)
+		}
+		for _, file := range files {
+			name := file.Name()
+			if err := Unpack(filepath.Join(extractPath, name), filepath.Join(resPath, name)); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
 
-	out, err := os.OpenFile(base, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	out, err := os.OpenFile(extractPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
 	}
