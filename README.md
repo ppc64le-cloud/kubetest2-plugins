@@ -6,7 +6,16 @@ This project contains the [kubetest2](https://github.com/kubernetes-sigs/kubetes
 
 kubetest2-powervs is a deployer created for deploying on [IBM Cloud Power Virtual Server](https://www.ibm.com/in-en/cloud/power-virtual-server) infrastructure.
 
-## Plugin Installation
+### Plugin Installation
+
+##### Using make:
+The plugin can be installed by executing the following command from repository root:
+```
+# make install-deployer-tf
+```
+
+
+##### Manual Installation:
 The kubetest2-plugin uses the `powervs` and `k8s-ansible` resources as embedded files.
 
 As [`k8s-ansible`](https://github.com/ppc64le-cloud/k8s-ansible) is a submodule, it requires initialisation and update to clone the repository to the data/k8s-ansible path before the binary is built.
