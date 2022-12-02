@@ -31,8 +31,7 @@ func Unpack(extractPath, resPath string) error {
 	}
 
 	if info.IsDir() {
-		err := os.MkdirAll(extractPath, 0777)
-		if err != nil {
+		if err := os.MkdirAll(extractPath, 0777); err != nil {
 			return fmt.Errorf("cannot create directory - %v", err)
 		}
 		file.Close()
@@ -43,8 +42,7 @@ func Unpack(extractPath, resPath string) error {
 		}
 		for _, file := range files {
 			name := file.Name()
-			err = Unpack(filepath.Join(extractPath, name), filepath.Join(resPath, name))
-			if err != nil {
+			if err := Unpack(filepath.Join(extractPath, name), filepath.Join(resPath, name)); err != nil {
 				return err
 			}
 		}
