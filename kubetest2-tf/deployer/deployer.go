@@ -38,6 +38,8 @@ const (
 `
 )
 
+var GitTag string
+
 type AnsibleInventory struct {
 	Masters []string
 	Workers []string
@@ -59,6 +61,10 @@ type deployer struct {
 	doInit        sync.Once
 	tmpDir        string
 	provider      providers.Provider
+}
+
+func (d *deployer) Version() string {
+	return GitTag
 }
 
 func (d *deployer) init() error {
