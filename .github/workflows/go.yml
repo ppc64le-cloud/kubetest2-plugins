@@ -20,6 +20,9 @@ jobs:
         cache: true
         cache-dependency-path: go.sum
 
+    - name: Validate checksum of dependencies.
+      run: go mod tidy
+
     - name: Build
       run: |
         git submodule update --init
