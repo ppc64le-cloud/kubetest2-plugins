@@ -19,12 +19,26 @@ variable "powervs_image_name" {
   description = "PowerVS image name to be used for the deployment"
 }
 
+# By design, only the worker node's CPU/Memory can be sized through the flags passed as arguments.
 variable "powervs_memory" {
-  description = "PowerVS memory in GB"
+  description = "Worker node's PowerVS memory in GB"
 }
 
 variable "powervs_processors" {
-  description = "PowerVS processor units"
+  description = "Worker node's PowerVS processor units"
+}
+
+# The control-plane node holds up well with 0.5C/8GB for most tests.
+# The default can be overridden by exporting TF variables - export TF_VAR_controlplane_powervs_memory=X
+variable "controlplane_powervs_memory" {
+  description = "Control plane's PowerVS memory in GB"
+  default = "8"
+}
+
+# The default can be overridden by exporting TF variables - export TF_VAR_controlplane_powervs_processors=X
+variable "controlplane_powervs_processors" {
+  description = "Control plane's PowerVS processor units"
+  default = "0.5"
 }
 
 variable "powervs_network_name" {

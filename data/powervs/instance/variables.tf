@@ -46,7 +46,7 @@ variable "network" {
 }
 
 variable "system_type" {
-    description = "Type of system on which the VM should be created - s922/e880"
+    description = "Type of system on which the VM should be created - s922/e980"
     default     = "s922"
 }
 

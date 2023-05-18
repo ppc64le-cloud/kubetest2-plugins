@@ -62,7 +62,7 @@ func (p *Provider) BindFlags(flags *pflag.FlagSet) {
 		&p.Processors, "powervs-processors", 0.5, "Processor Units",
 	)
 	flags.StringVar(
-		&p.SSHKey, "powervs-ssh-key", "", "PowerVS SSH Key to authenticate lpars",
+		&p.SSHKey, "powervs-ssh-key", "", "PowerVS SSH Key to authenticate LPARs",
 	)
 }
 

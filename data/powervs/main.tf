@@ -17,10 +17,10 @@ module "master" {
 
   ibmcloud_api_key = var.powervs_api_key
   image_name = var.powervs_image_name
-  memory = var.powervs_memory
+  memory = var.controlplane_powervs_memory
   network = var.powervs_network_name == "" ? ibm_pi_network.public_network[0].network_id : data.ibm_pi_network.existing_net[0].id
   powervs_service_instance_id = var.powervs_service_id
-  processors = var.powervs_processors
+  processors = var.controlplane_powervs_processors
   ssh_key_name = var.powervs_ssh_key
   vm_name = "${var.cluster_name}-master"
   ibmcloud_region = var.powervs_region
