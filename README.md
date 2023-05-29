@@ -28,3 +28,7 @@ Install the kubetest2-tf plugin using the following command:
 ```
 # go install ./...
 ```
+To update the repository with the latest commits in submodules:
+```
+# git submodule update --remote
+```
