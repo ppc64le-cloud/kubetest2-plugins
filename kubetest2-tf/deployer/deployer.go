@@ -19,7 +19,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/kubetest2/pkg/types"
-	
+
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/ansible"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
@@ -101,6 +101,7 @@ var (
 	breakKubetestOnUpFail bool
 	playbook              string
 	extraVars             map[string]string
+	setKubeConfig         bool
 )
 
 func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
@@ -130,6 +131,9 @@ func bindFlags(d *deployer) *pflag.FlagSet {
 	)
 	flags.StringToStringVar(
 		&extraVars, "extra-vars", nil, "Passes extra-vars to ansible playbook, enter a string of key=value pairs",
+	)
+	flags.BoolVar(
+		&setKubeConfig, "set-kubeconfig", true, "Flag to set kubeconfig",
 	)
 	flags.MarkHidden("ignore-cluster-dir")
 	common.CommonProvider.BindFlags(flags)
@@ -235,10 +239,12 @@ func (d *deployer) Up() error {
 		return fmt.Errorf("failed to run ansible playbook: %v\n with exit code: %d", err, exitcode)
 	}
 
-	if err = setKubeconfig(inventory.Masters[0]); err != nil {
-		return fmt.Errorf("failed to setKubeconfig: %v", err)
+	if setKubeConfig {
+		if err = setKubeconfig(inventory.Masters[0]); err != nil {
+			return fmt.Errorf("failed to setKubeconfig: %v", err)
+		}
+		fmt.Printf("KUBECONFIG set to: %s\n", os.Getenv("KUBECONFIG"))
 	}
-	fmt.Printf("KUBECONFIG set to: %s\n", os.Getenv("KUBECONFIG"))
 	return nil
 }
 
