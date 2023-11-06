@@ -7,13 +7,13 @@ require (
 	github.com/spf13/pflag v1.0.5
 	k8s.io/client-go v0.28.3
 	k8s.io/cluster-bootstrap v0.28.3
-	k8s.io/klog/v2 v2.100.1
+	k8s.io/klog/v2 v2.110.1
 	sigs.k8s.io/kubetest2 v0.0.0-20221019023504-d306c412d528
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-logr/logr v1.2.4 // indirect
+	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
