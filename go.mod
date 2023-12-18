@@ -6,7 +6,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	k8s.io/client-go v0.28.4
-	k8s.io/cluster-bootstrap v0.28.4
+	k8s.io/cluster-bootstrap v0.29.0
 	k8s.io/klog/v2 v2.110.1
 	sigs.k8s.io/kubetest2 v0.0.0-20221019023504-d306c412d528
 )
@@ -35,10 +35,10 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/api v0.28.4 // indirect
-	k8s.io/apimachinery v0.28.4 // indirect
-	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 // indirect
+	k8s.io/api v0.29.0 // indirect
+	k8s.io/apimachinery v0.29.0 // indirect
+	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
