@@ -50,6 +50,11 @@ variable "system_type" {
     default     = "s922"
 }
 
+variable "storage_tier" {
+    description = "I/O operation per second (IOPS) based storage on requirement - tier1, tier3 "
+    default     = "tier1"
+}
+
 variable "image_name" {
     description = "Name of the image from which the VM should be deployed - IBM i image name"
 }
