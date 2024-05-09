@@ -17,6 +17,7 @@ resource "ibm_pi_instance" "pvminstance" {
     pi_image_id           = data.ibm_pi_image.power_images.id
     pi_key_pair_name      = var.ssh_key_name
     pi_sys_type           = var.system_type
+    pi_storage_type       = var.storage_tier
     pi_cloud_instance_id = var.powervs_service_instance_id
     pi_user_data          = var.user_data
     # Wait for the WARNING state instead of OK state to save some time because we aren't performing any DLPAR operations
