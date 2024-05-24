@@ -27,4 +27,8 @@ resource "ibm_pi_instance" "pvminstance" {
     pi_network {
       network_id = data.ibm_pi_network.power_network.id
     }
+    timeouts {
+      create = "30m"
+      delete = "30m"
+    }
 }
