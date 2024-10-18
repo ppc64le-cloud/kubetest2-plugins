@@ -20,11 +20,11 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/kubetest2/pkg/build"
 	"sigs.k8s.io/kubetest2/pkg/types"
 
 	"github.com/ppc64le-cloud/kubetest2-plugins/kubetest2-tf/deployer/options"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/ansible"
+	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/build"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/powervs"

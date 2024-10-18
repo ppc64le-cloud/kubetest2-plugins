@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"k8s.io/klog/v2"
+
+	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/build"
 )
 
 func (d *deployer) Build() error {
@@ -17,6 +19,7 @@ func (d *deployer) Build() error {
 	if err != nil {
 		return err
 	}
+	build.StoreCommonBinaries(d.RepoRoot, d.commonOptions.RunDir())
 	return nil
 }
 
