@@ -2,6 +2,7 @@ package deployer
 
 import (
 	"encoding/json"
+	goflag "flag"
 	"fmt"
 	"log"
 	"net"
@@ -14,12 +15,15 @@ import (
 	"sync"
 	"text/template"
 
+	"github.com/octago/sflags/gen/gpflag"
 	"github.com/spf13/pflag"
 
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/kubetest2/pkg/build"
 	"sigs.k8s.io/kubetest2/pkg/types"
 
+	"github.com/ppc64le-cloud/kubetest2-plugins/kubetest2-tf/deployer/options"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/ansible"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
@@ -57,10 +61,12 @@ func (i *AnsibleInventory) addMachine(mtype string, value string) {
 
 type deployer struct {
 	commonOptions types.Options
+	BuildOptions  *options.BuildOptions
 	logsDir       string
 	doInit        sync.Once
 	tmpDir        string
 	provider      providers.Provider
+	RepoRoot      string `desc:"The path to the root of the local kubernetes repo. Necessary to call certain scripts. Defaults to the current directory. If operating in legacy mode, this should be set to the local kubernetes/kubernetes repo."`
 }
 
 func (d *deployer) Version() string {
@@ -75,6 +81,11 @@ func (d *deployer) init() error {
 
 func (d *deployer) initialize() error {
 	fmt.Println("Check if package dependencies are installed in the environment")
+	if d.commonOptions.ShouldBuild() {
+		if err := d.verifyBuildFlags(); err != nil {
+			return fmt.Errorf("init failed to check build flags: %s", err)
+		}
+	}
 	if err := d.checkDependencies(); err != nil {
 		return err
 	}
@@ -108,8 +119,24 @@ func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 	d := &deployer{
 		commonOptions: opts,
 		logsDir:       filepath.Join(opts.RunDir(), "logs"),
+		BuildOptions: &options.BuildOptions{
+			CommonBuildOptions: &build.Options{
+				Builder:         &build.NoopBuilder{},
+				Stager:          &build.NoopStager{},
+				Strategy:        "make",
+				TargetBuildArch: "linux/ppc64le",
+			},
+		},
 	}
-	return d, bindFlags(d)
+	flagSet, err := gpflag.Parse(d)
+	if err != nil {
+		klog.Fatalf("couldn't parse flagset for deployer struct: %s", err)
+	}
+	klog.InitFlags(nil)
+	flagSet.AddGoFlagSet(goflag.CommandLine)
+	fs := bindFlags(d)
+	flagSet.AddFlagSet(fs)
+	return d, flagSet
 }
 
 func bindFlags(d *deployer) *pflag.FlagSet {
@@ -302,10 +329,6 @@ func (d *deployer) IsUp() (up bool, err error) {
 }
 
 func (d *deployer) DumpClusterLogs() error {
-	panic("implement me")
-}
-
-func (d *deployer) Build() error {
 	panic("implement me")
 }
 
