@@ -18,6 +18,7 @@ package build
 
 import (
 	"fmt"
+	"regexp"
 
 	"sigs.k8s.io/kubetest2/pkg/build"
 )
@@ -34,7 +35,7 @@ const (
 
 type Options struct {
 	Strategy           string `flag:"~strategy" desc:"Determines the build strategy to use either make or bazel."`
-	StageLocation      string `flag:"~stage" desc:"Upload binaries to gs://bucket/ci/job-suffix if set"`
+	StageLocation      string `flag:"~stage" desc:"Upload binaries to storage location if set, rightnow it supports cos://us/bucket123/<PATH> format for the IBM COS"`
 	RepoRoot           string `flag:"-"`
 	ImageLocation      string `flag:"~image-location" desc:"Image registry where built images are stored."`
 	StageExtraGCPFiles bool   `flag:"-"`
@@ -64,13 +65,23 @@ func (o *Options) implementationFromStrategy() error {
 			RepoRoot:        o.RepoRoot,
 			TargetBuildArch: o.TargetBuildArch,
 		}
-		o.Stager = &build.Krel{
-			RepoRoot:        o.RepoRoot,
-			StageLocation:   o.StageLocation,
-			ImageLocation:   o.ImageLocation,
-			StageExtraFiles: o.StageExtraGCPFiles,
-			UpdateLatest:    o.UpdateLatest,
+		// skip the staging if stage is empty
+		if o.StageLocation == "" {
+			break
 		}
+		re := regexp.MustCompile(`^([a-zA-Z]+):\/\/([a-zA-Z0-9-]+)\/([a-zA-Z0-9-]+)(\/.*)?$`)
+		matches := re.FindStringSubmatch(o.StageLocation)
+		if len(matches) < 1 {
+			return fmt.Errorf("invalid stage URL")
+		}
+		if matches[1] == "cos" {
+			stager, err := NewIBMCOSStager(o.StageLocation, o.RepoRoot, o.TargetBuildArch)
+			if err != nil {
+				return err
+			}
+			o.Stager = stager
+		}
+		return fmt.Errorf("unsupported stage: %s", o.StageLocation)
 	default:
 		return fmt.Errorf("unknown build strategy: %v", o.Strategy)
 	}

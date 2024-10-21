@@ -15,8 +15,11 @@ func (d *deployer) Build() error {
 	if err := d.init(); err != nil {
 		return fmt.Errorf("build failed to init: %s", err)
 	}
-	_, err := d.BuildOptions.Build()
+	version, err := d.BuildOptions.Build()
 	if err != nil {
+		return err
+	}
+	if err := d.BuildOptions.Stage(version); err != nil {
 		return err
 	}
 	build.StoreCommonBinaries(d.RepoRoot, d.commonOptions.RunDir())
