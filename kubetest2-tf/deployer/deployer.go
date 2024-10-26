@@ -66,7 +66,15 @@ type deployer struct {
 	doInit        sync.Once
 	tmpDir        string
 	provider      providers.Provider
-	RepoRoot      string `desc:"The path to the root of the local kubernetes repo. Necessary to call certain scripts. Defaults to the current directory. If operating in legacy mode, this should be set to the local kubernetes/kubernetes repo."`
+
+	RepoRoot              string            `desc:"The path to the root of the local kubernetes repo. Necessary to call certain scripts. Defaults to the current directory. If operating in legacy mode, this should be set to the local kubernetes/kubernetes repo."`
+	IgnoreClusterDir      bool              `desc:"Ignore the cluster folder if exists"`
+	AutoApprove           bool              `desc:"Terraform Auto Approve"`
+	RetryOnTfFailure      int               `desc:"Retry on Terraform Apply Failure"`
+	BreakKubetestOnUpfail bool              `desc:"Breaks kubetest2 when up fails"`
+	Playbook              string            `desc:"name of ansible playbook to be run"`
+	ExtraVars             map[string]string `desc:"Passes extra-vars to ansible playbook, enter a string of key=value pairs"`
+	SetKubeConfig         bool              `desc:"Flag to set kubeconfig"`
 }
 
 func (d *deployer) Version() string {
@@ -97,23 +105,13 @@ func (d *deployer) initialize() error {
 		if err != nil {
 			return fmt.Errorf("failed to create dir: %s", d.tmpDir)
 		}
-	} else if !ignoreClusterDir {
+	} else if !d.IgnoreClusterDir {
 		return fmt.Errorf("directory named %s already exist, please choose a different cluster-name", d.tmpDir)
 	}
 	return nil
 }
 
 var _ types.Deployer = &deployer{}
-
-var (
-	ignoreClusterDir      bool
-	autoApprove           bool
-	retryOnTfFailure      int
-	breakKubetestOnUpFail bool
-	playbook              string
-	extraVars             map[string]string
-	setKubeConfig         bool
-)
 
 func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 	d := &deployer{
@@ -127,6 +125,8 @@ func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 				TargetBuildArch: "linux/ppc64le",
 			},
 		},
+		RetryOnTfFailure: 1,
+		Playbook:         "install-k8s.yml",
 	}
 	flagSet, err := gpflag.Parse(d)
 	if err != nil {
@@ -141,28 +141,6 @@ func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 
 func bindFlags(d *deployer) *pflag.FlagSet {
 	flags := pflag.NewFlagSet(Name, pflag.ContinueOnError)
-	flags.BoolVar(
-		&ignoreClusterDir, "ignore-cluster-dir", false, "Ignore the cluster folder if exists",
-	)
-	flags.BoolVar(
-		&autoApprove, "auto-approve", false, "Terraform Auto Approve",
-	)
-	flags.IntVar(
-		&retryOnTfFailure, "retry-on-tf-failure", 1, "Retry on Terraform Apply Failure",
-	)
-	flags.BoolVar(
-		&breakKubetestOnUpFail, "break-kubetest-on-upfail", false, "Breaks kubetest2 when up fails",
-	)
-	flags.StringVar(
-		&playbook, "playbook", "install-k8s.yml", "name of ansible playbook to be run",
-	)
-	flags.StringToStringVar(
-		&extraVars, "extra-vars", nil, "Passes extra-vars to ansible playbook, enter a string of key=value pairs",
-	)
-	flags.BoolVar(
-		&setKubeConfig, "set-kubeconfig", true, "Flag to set kubeconfig",
-	)
-	flags.MarkHidden("ignore-cluster-dir")
 	common.CommonProvider.BindFlags(flags)
 	powervs.PowerVSProvider.BindFlags(flags)
 
@@ -184,14 +162,14 @@ func (d *deployer) Up() error {
 		return fmt.Errorf("failed to dumpconfig to: %s and err: %+v", d.tmpDir, err)
 	}
 
-	for i := 0; i <= retryOnTfFailure; i++ {
-		path, err := terraform.Apply(d.tmpDir, "powervs", autoApprove)
+	for i := 0; i <= d.RetryOnTfFailure; i++ {
+		path, err := terraform.Apply(d.tmpDir, "powervs", d.AutoApprove)
 		op, oerr := terraform.Output(d.tmpDir, "powervs")
 		if err != nil {
-			if i == retryOnTfFailure {
+			if i == d.RetryOnTfFailure {
 				fmt.Printf("terraform.Output: %s\nterraform.Output error: %v\n", op, oerr)
-				if !breakKubetestOnUpFail {
-					return fmt.Errorf("Terraform Apply failed. Error: %v\n", err)
+				if !d.BreakKubetestOnUpfail {
+					return fmt.Errorf("terraform Apply failed. Error: %v", err)
 				}
 				klog.Infof("Terraform Apply failed. Look into it and delete the resources")
 				klog.Infof("terraform.Apply error: %v", err)
@@ -217,7 +195,7 @@ func (d *deployer) Up() error {
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal: %v", err)
 		}
-		for index, _ := range tmp {
+		for index := range tmp {
 			inventory.addMachine(machineType, tmp[index].(string))
 		}
 	}
@@ -251,8 +229,8 @@ func (d *deployer) Up() error {
 	final := map[string]interface{}{}
 	json.Unmarshal([]byte(commonJSON), &final)
 	//Iterating through extra-vars and adding them to map
-	for k := range extraVars {
-		final[k] = extraVars[k]
+	for k := range d.ExtraVars {
+		final[k] = d.ExtraVars[k]
 	}
 	//Marshalling back the map to JSON
 	finalJSON, err := json.Marshal(final)
@@ -261,12 +239,12 @@ func (d *deployer) Up() error {
 	}
 	klog.Infof("finalJSON with extra vars: %v", string(finalJSON))
 
-	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"), string(finalJSON), playbook)
+	exitcode, err := ansible.Playbook(d.tmpDir, filepath.Join(d.tmpDir, "hosts"), string(finalJSON), d.Playbook)
 	if err != nil {
 		return fmt.Errorf("failed to run ansible playbook: %v\n with exit code: %d", err, exitcode)
 	}
 
-	if setKubeConfig {
+	if d.SetKubeConfig {
 		if err = setKubeconfig(inventory.Masters[0]); err != nil {
 			return fmt.Errorf("failed to setKubeconfig: %v", err)
 		}
@@ -286,7 +264,7 @@ func setKubeconfig(host string) error {
 	if err != nil {
 		fmt.Printf("failed to load the kuneconfig file")
 	}
-	for i, _ := range config.Clusters {
+	for i := range config.Clusters {
 		surl, err := url.Parse(config.Clusters[i].Server)
 		if err != nil {
 			return fmt.Errorf("failed while Parsing the URL: %s", config.Clusters[i].Server)
@@ -313,7 +291,7 @@ func (d *deployer) Down() error {
 	if err := d.init(); err != nil {
 		return fmt.Errorf("down failed to init: %s", err)
 	}
-	err := terraform.Destroy(d.tmpDir, "powervs", autoApprove)
+	err := terraform.Destroy(d.tmpDir, "powervs", d.AutoApprove)
 	if err != nil {
 		if common.CommonProvider.IgnoreDestroy {
 			klog.Infof("terraform.Destroy failed: %v", err)
