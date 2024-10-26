@@ -127,6 +127,7 @@ func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 		},
 		RetryOnTfFailure: 1,
 		Playbook:         "install-k8s.yml",
+		SetKubeConfig:    true,
 	}
 	flagSet, err := gpflag.Parse(d)
 	if err != nil {
