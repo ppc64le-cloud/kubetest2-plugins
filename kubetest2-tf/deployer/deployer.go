@@ -74,7 +74,7 @@ type deployer struct {
 	BreakKubetestOnUpfail bool              `desc:"Breaks kubetest2 when up fails"`
 	Playbook              string            `desc:"name of ansible playbook to be run"`
 	ExtraVars             map[string]string `desc:"Passes extra-vars to ansible playbook, enter a string of key=value pairs"`
-	SetKubeConfig         bool              `desc:"Flag to set kubeconfig"`
+	SetKubeconfig         bool              `desc:"Flag to set kubeconfig"`
 }
 
 func (d *deployer) Version() string {
@@ -127,7 +127,7 @@ func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 		},
 		RetryOnTfFailure: 1,
 		Playbook:         "install-k8s.yml",
-		SetKubeConfig:    true,
+		SetKubeconfig:    true,
 	}
 	flagSet, err := gpflag.Parse(d)
 	if err != nil {
@@ -245,7 +245,7 @@ func (d *deployer) Up() error {
 		return fmt.Errorf("failed to run ansible playbook: %v\n with exit code: %d", err, exitcode)
 	}
 
-	if d.SetKubeConfig {
+	if d.SetKubeconfig {
 		if err = setKubeconfig(inventory.Masters[0]); err != nil {
 			return fmt.Errorf("failed to setKubeconfig: %v", err)
 		}
