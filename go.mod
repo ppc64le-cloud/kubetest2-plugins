@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/IBM/ibm-cos-sdk-go v1.11.1
-	github.com/octago/sflags v0.2.0
+	github.com/octago/sflags v0.3.1-0.20210726012706-20f2a9c31dfc
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	k8s.io/client-go v0.31.1
