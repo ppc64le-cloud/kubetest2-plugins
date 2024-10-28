@@ -7,7 +7,7 @@ require (
 	github.com/octago/sflags v0.3.1-0.20210726012706-20f2a9c31dfc
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
-	k8s.io/client-go v0.31.1
+	k8s.io/client-go v0.31.2
 	k8s.io/cluster-bootstrap v0.31.2
 	k8s.io/klog/v2 v2.130.1
 	sigs.k8s.io/kubetest2 v0.0.0-20240905095256-f6e8664cd2b1
