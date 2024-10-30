@@ -1,6 +1,8 @@
 package deployer
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	goflag "flag"
 	"fmt"
@@ -29,6 +31,8 @@ import (
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/powervs"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/terraform"
+
+	"sigs.k8s.io/kubetest2/pkg/metadata"
 )
 
 const (
@@ -50,7 +54,7 @@ type AnsibleInventory struct {
 }
 
 // Add additional Linux package dependencies here, used by checkDependencies()
-var dependencies = []string{"terraform", "ansible"}
+var dependencies = []string{"terraform", "ansible", "kubectl"}
 
 func (i *AnsibleInventory) addMachine(mtype string, value string) {
 	v := reflect.ValueOf(i).Elem().FieldByName(mtype)
@@ -60,12 +64,13 @@ func (i *AnsibleInventory) addMachine(mtype string, value string) {
 }
 
 type deployer struct {
+	BuildOptions *options.BuildOptions
+
 	commonOptions types.Options
-	BuildOptions  *options.BuildOptions
-	logsDir       string
 	doInit        sync.Once
-	tmpDir        string
+	logsDir       string
 	provider      providers.Provider
+	tmpDir        string
 
 	RepoRoot              string            `desc:"The path to the root of the local kubernetes repo. Necessary to call certain scripts. Defaults to the current directory. If operating in legacy mode, this should be set to the local kubernetes/kubernetes repo."`
 	IgnoreClusterDir      bool              `desc:"Ignore the cluster folder if exists"`
@@ -251,6 +256,19 @@ func (d *deployer) Up() error {
 		}
 		fmt.Printf("KUBECONFIG set to: %s\n", os.Getenv("KUBECONFIG"))
 	}
+
+	if isUp, err := d.IsUp(); err != nil {
+		klog.Warningf("failed to check if cluster is up: %v", err)
+	} else if isUp {
+		klog.V(1).Infof("cluster reported as up")
+	} else {
+		klog.Errorf("cluster reported as down")
+	}
+
+	klog.Infof("Dumping cluster info..")
+	if err := d.DumpClusterLogs(); err != nil {
+		klog.Warningf("Dumping cluster logs at the end of Up() failed: %v", err)
+	}
 	return nil
 }
 
@@ -263,7 +281,7 @@ func setKubeconfig(host string) error {
 
 	config, err := clientcmd.LoadFromFile(common.CommonProvider.KubeconfigPath)
 	if err != nil {
-		fmt.Printf("failed to load the kuneconfig file")
+		klog.Error("failed to load the kubeconfig file")
 	}
 	for i := range config.Clusters {
 		surl, err := url.Parse(config.Clusters[i].Server)
@@ -304,11 +322,28 @@ func (d *deployer) Down() error {
 }
 
 func (d *deployer) IsUp() (up bool, err error) {
-	panic("implement me")
-}
-
-func (d *deployer) DumpClusterLogs() error {
-	panic("implement me")
+	var lines []string
+	command := []string{
+		"kubectl",
+		"get", "nodes",
+		"-o=name",
+	}
+	klog.Infof("About to run: %s", command)
+	cmd := exec.Command(command[0], command[1:]...)
+	var buff bytes.Buffer
+	cmd.Stdout = &buff
+	err = cmd.Run()
+	scanner := bufio.NewScanner(&buff)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if err != nil {
+		return false, metadata.NewJUnitError(err, strings.Join(lines, "\n"))
+	}
+	if len(lines) == 0 {
+		return false, fmt.Errorf("project had no nodes active: %s", common.CommonProvider.ClusterName)
+	}
+	return true, nil
 }
 
 // checkDependencies determines if the required packages are installed before
