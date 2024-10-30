@@ -7,6 +7,7 @@ type TFVars struct {
 	StorageServer  string `json:"s3_server,omitempty"`
 	StorageBucket  string `json:"bucket,omitempty"`
 	StorageDir     string `json:"directory,omitempty"`
+	K8sTarBundles  string `json:"k8s_tar_bundles,omitempty"`
 	ClusterName    string `json:"cluster_name"`
 	ApiServerPort  int    `json:"apiserver_port"`
 	WorkersCount   int    `json:"workers_count"`
