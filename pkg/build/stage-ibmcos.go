@@ -21,6 +21,7 @@ type IBMCOSStager struct {
 	RepoRoot        string
 	Region          string
 	Bucket          string
+	Path            string
 	TargetBuildArch string
 }
 
@@ -36,6 +37,7 @@ func NewIBMCOSStager(stageLocation, repoRoot, targetBuildArch string) (*IBMCOSSt
 		RepoRoot:        repoRoot,
 		Region:          matches[2],
 		Bucket:          matches[3],
+		Path:            matches[4],
 		TargetBuildArch: targetBuildArch,
 	}, nil
 }
@@ -57,8 +59,8 @@ func (i *IBMCOSStager) getS3Client() *s3.S3 {
 func (i *IBMCOSStager) Stage(version string) error {
 	client := i.getS3Client()
 	tgzFile := "kubernetes-server-" + strings.ReplaceAll(i.TargetBuildArch, "/", "-") + ".tar.gz"
-	destinationKey := aws.String(version + "/" + tgzFile)
-	klog.Infof("uploading %s to location %s/%s", tgzFile, i.StageLocation, *destinationKey)
+	destinationKey := aws.String(i.Path + "/" + version + "/" + tgzFile)
+	klog.Infof("uploading %s to location %s/%s", tgzFile, i.StageLocation, version)
 
 	f, err := os.Open(i.RepoRoot + "/_output/release-tars/" + tgzFile)
 	if err != nil {
