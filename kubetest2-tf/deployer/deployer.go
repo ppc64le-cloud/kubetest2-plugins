@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	goflag "flag"
 	"fmt"
-	"log"
 	"net"
 	"net/url"
 	"os"
@@ -71,6 +70,7 @@ type deployer struct {
 	logsDir       string
 	provider      providers.Provider
 	tmpDir        string
+	machineIPs    []string
 
 	RepoRoot              string            `desc:"The path to the root of the local kubernetes repo. Necessary to call certain scripts. Defaults to the current directory. If operating in legacy mode, this should be set to the local kubernetes/kubernetes repo."`
 	IgnoreClusterDir      bool              `desc:"Ignore the cluster folder if exists"`
@@ -203,6 +203,7 @@ func (d *deployer) Up() error {
 		}
 		for index := range tmp {
 			inventory.addMachine(machineType, tmp[index].(string))
+			d.machineIPs = append(d.machineIPs, tmp[index].(string))
 		}
 	}
 	klog.Infof("inventory: %v", inventory)
@@ -215,7 +216,7 @@ func (d *deployer) Up() error {
 
 	inventoryFile, err := os.Create(filepath.Join(d.tmpDir, "hosts"))
 	if err != nil {
-		log.Println("create file: ", err)
+		klog.Errorf("Error while creating a file: %v", err)
 		return fmt.Errorf("failed to create inventory file: %v", err)
 	}
 
@@ -233,7 +234,7 @@ func (d *deployer) Up() error {
 	klog.Infof("commonJSON: %v", string(commonJSON))
 	//Unmarshalling commonJSON into map to add extra-vars
 	final := map[string]interface{}{}
-	json.Unmarshal([]byte(commonJSON), &final)
+	json.Unmarshal(commonJSON, &final)
 	//Iterating through extra-vars and adding them to map
 	for k := range d.ExtraVars {
 		final[k] = d.ExtraVars[k]
