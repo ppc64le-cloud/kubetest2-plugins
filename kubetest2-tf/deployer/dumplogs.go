@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"k8s.io/klog/v2"
+
+	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers/common"
 )
 
 var commandFilename = map[string]string{
@@ -20,7 +22,7 @@ var commandFilename = map[string]string{
 	"services.log": "sudo systemctl list-units -t service --no-pager --no-legend --all"}
 
 func (d *deployer) DumpClusterLogs() error {
-	var stdErr bytes.Buffer
+	var stdErr, stdOut bytes.Buffer
 	klog.Infof("Collecting cluster logs under %s", d.logsDir)
 	// create a directory based on the generated path: _rundir/dump-cluster-logs
 	if _, err := os.Stat(d.logsDir); os.IsNotExist(err) {
@@ -34,12 +36,6 @@ func (d *deployer) DumpClusterLogs() error {
 	} else {
 		return fmt.Errorf("an error occured while obtaining directory stats. Err: %v", err)
 	}
-	outfile, err := os.Create(filepath.Join(d.logsDir, "cluster-info.log"))
-	if err != nil {
-		klog.Errorf("Failed to create a log file. Err: %v", err)
-		return err
-	}
-	defer outfile.Close()
 	command := []string{
 		"kubectl",
 		"cluster-info",
@@ -47,28 +43,44 @@ func (d *deployer) DumpClusterLogs() error {
 	}
 	klog.Infof("About to run: %s", command)
 	cmd := exec.Command(command[0], command[1:]...)
-	cmd.Stdout = outfile
+	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("couldn't use kubectl to dump cluster info: %v. StdErr: %s", err, stdErr.String())
 	}
+	outfile, err := os.Create(filepath.Join(d.logsDir, "cluster-info.log"))
+	if err != nil {
+		klog.Errorf("Failed to create a log file. Err: %v", err)
+		return err
+	}
+	outfile.WriteString(string(stdOut.Bytes()))
+	outfile.Close()
+
 	// Todo: Include provider specific logic in this section. (Includes node level information/CRI/Services, etc.)
 	for _, machineIP := range d.machineIPs {
-		klog.Infof("Collecting node level information from machine %s", machineIP)
+		klog.Infof("Collecting node level information from PowerVS instance %s", machineIP)
 		for logFile, command := range commandFilename {
-			outfile, err := os.Create(filepath.Join(d.logsDir, fmt.Sprintf("%s-%s.log", machineIP, logFile)))
-			if err != nil {
-				klog.Errorf("Failed to create a log file. Err: %v", err)
-				return err
+			commandArgs := []string{
+				"ssh",
+				"-i",
+				common.CommonProvider.SSHPrivateKey,
+				fmt.Sprintf("root@%s", machineIP),
+				command,
 			}
-			klog.V(1).Infof("Remotely executing command: %s", command)
-			cmd := exec.Command("ssh", fmt.Sprintf("root@%s", machineIP), command)
-			cmd.Stdout = outfile
+			klog.V(1).Infof("Remotely executing command: %s", commandArgs)
+			cmd := exec.Command(commandArgs[0], commandArgs[1:]...)
+			cmd.Stdout = &stdOut
 			cmd.Stderr = &stdErr
 			err = cmd.Run()
 			if err != nil {
 				klog.Errorf("An error occurred while obtaining logs from node: %v. StdErr: %s", err, stdErr.String())
+				return err
+			}
+
+			outfile, err = os.Create(filepath.Join(d.logsDir, fmt.Sprintf("%s-%s.log", machineIP, logFile)))
+			if err != nil {
+				klog.Errorf("Failed to create a log file. Err: %v", err)
 				return err
 			}
 			outfile.Close()
