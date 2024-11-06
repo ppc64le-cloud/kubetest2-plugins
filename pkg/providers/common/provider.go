@@ -38,7 +38,7 @@ func (p *Provider) BindFlags(flags *pflag.FlagSet) {
 		&p.Runtime, "runtime", "", "Runtime used while installing k8s cluster",
 	)
 	flags.StringVar(
-		&p.StorageServer, "s3-server", "", "S3 server where Kubernees Bits are stored",
+		&p.StorageServer, "s3-server", "", "S3 server where Kubernetes Bits are stored",
 	)
 	flags.StringVar(
 		&p.StorageBucket, "bucket", "", "Storage Bucket",

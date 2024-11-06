@@ -3,7 +3,7 @@ package powervs
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
@@ -72,7 +72,7 @@ func (p *Provider) DumpConfig(dir string) error {
 	if err != nil {
 		return fmt.Errorf("errored file converting config to json: %v", err)
 	}
-	err = ioutil.WriteFile(filename, config, 0644)
+	err = os.WriteFile(filename, config, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to dump the json config to: %s, err: %v", filename, err)
 	}
