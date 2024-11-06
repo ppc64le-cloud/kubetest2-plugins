@@ -13,15 +13,17 @@ import (
 )
 
 var commandFilename = map[string]string{
-	fmt.Sprintf("%s.log", common.CommonProvider.Runtime): fmt.Sprintf("journalctl -xeu %s --no-pager", common.CommonProvider.Runtime),
-
-	"dmesg.log":    "dmesg",
-	"kernel.log":   "sudo journalctl --no-pager --output=short-precise -k",
-	"services.log": "sudo systemctl list-units -t service --no-pager --no-legend --all"}
+	"dmesg":    "dmesg",
+	"kernel":   "sudo journalctl --no-pager --output=short-precise -k",
+	"services": "sudo systemctl list-units -t service --no-pager --no-legend --all"}
 
 func (d *deployer) DumpClusterLogs() error {
 	var errors []error
 	var stdErr, stdOut bytes.Buffer
+
+	// Set exclusively as maps are declared during compile-time and may be set with defaults.
+	commandFilename[common.CommonProvider.Runtime] = fmt.Sprintf("journalctl -xeu %s --no-pager", common.CommonProvider.Runtime)
+
 	klog.Infof("Collecting cluster logs under %s", d.logsDir)
 	// create a directory based on the generated path: _rundir/dump-cluster-logs
 	if _, err := os.Stat(d.logsDir); os.IsNotExist(err) {
