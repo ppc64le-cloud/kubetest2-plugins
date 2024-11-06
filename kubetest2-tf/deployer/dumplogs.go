@@ -22,6 +22,7 @@ var commandFilename = map[string]string{
 	"services.log": "sudo systemctl list-units -t service --no-pager --no-legend --all"}
 
 func (d *deployer) DumpClusterLogs() error {
+	var errors []error
 	var stdErr, stdOut bytes.Buffer
 	klog.Infof("Collecting cluster logs under %s", d.logsDir)
 	// create a directory based on the generated path: _rundir/dump-cluster-logs
@@ -47,15 +48,16 @@ func (d *deployer) DumpClusterLogs() error {
 	cmd.Stderr = &stdErr
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("couldn't use kubectl to dump cluster info: %v. StdErr: %s", err, stdErr.String())
+		errors = append(errors, fmt.Errorf("couldn't use kubectl to dump cluster info: %v. StdErr: %s", err, stdErr.String()))
+	} else {
+		outfile, err := os.Create(filepath.Join(d.logsDir, "cluster-info.log"))
+		if err != nil {
+			errors = append(errors, fmt.Errorf("couldn't create file to capture dump cluster info: %v. StdErr: %s", err, stdErr.String()))
+		} else {
+			outfile.WriteString(string(stdOut.Bytes()))
+			outfile.Close()
+		}
 	}
-	outfile, err := os.Create(filepath.Join(d.logsDir, "cluster-info.log"))
-	if err != nil {
-		klog.Errorf("Failed to create a log file. Err: %v", err)
-		return err
-	}
-	outfile.WriteString(string(stdOut.Bytes()))
-	outfile.Close()
 
 	// Todo: Include provider specific logic in this section. (Includes node level information/CRI/Services, etc.)
 	for _, machineIP := range d.machineIPs {
@@ -74,17 +76,21 @@ func (d *deployer) DumpClusterLogs() error {
 			cmd.Stderr = &stdErr
 			err = cmd.Run()
 			if err != nil {
-				klog.Errorf("An error occurred while obtaining logs from node: %v. StdErr: %s", err, stdErr.String())
-				return err
+				errors = append(errors, fmt.Errorf("Failed to collect logs from node - %v - %v, err: %v", commandArgs, stdErr.String(), err))
+				continue
 			}
 
-			outfile, err = os.Create(filepath.Join(d.logsDir, fmt.Sprintf("%s-%s.log", machineIP, logFile)))
+			outfile, err := os.Create(filepath.Join(d.logsDir, fmt.Sprintf("%s-%s.log", machineIP, logFile)))
 			if err != nil {
-				klog.Errorf("Failed to create a log file. Err: %v", err)
-				return err
+				errors = append(errors, fmt.Errorf("Failed to create a log-file: %v", err))
+				continue
+			} else {
+				outfile.Close()
 			}
-			outfile.Close()
 		}
+	}
+	if len(errors) > 0 {
+		return fmt.Errorf("Observed one or more errors while collecting logs: %v", errors)
 	}
 	klog.Infof("Successfully collected cluster logs under %s", d.logsDir)
 	return nil
