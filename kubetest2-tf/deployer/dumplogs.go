@@ -63,6 +63,8 @@ func (d *deployer) DumpClusterLogs() error {
 	for _, machineIP := range d.machineIPs {
 		klog.Infof("Collecting node level information from PowerVS instance %s", machineIP)
 		for logFile, command := range commandFilename {
+			stdOut.Reset()
+			stdErr.Reset()
 			commandArgs := []string{
 				"ssh",
 				"-i",
@@ -85,6 +87,7 @@ func (d *deployer) DumpClusterLogs() error {
 				errors = append(errors, fmt.Errorf("Failed to create a log-file: %v", err))
 				continue
 			} else {
+				outfile.WriteString(string(stdOut.Bytes()))
 				outfile.Close()
 			}
 		}

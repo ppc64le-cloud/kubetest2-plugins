@@ -21,6 +21,7 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/kubetest2/pkg/artifacts"
 	"sigs.k8s.io/kubetest2/pkg/types"
 
 	"github.com/ppc64le-cloud/kubetest2-plugins/kubetest2-tf/deployer/options"
@@ -121,7 +122,7 @@ var _ types.Deployer = &deployer{}
 func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 	d := &deployer{
 		commonOptions: opts,
-		logsDir:       filepath.Join(opts.RunDir(), "logs"),
+		logsDir:       filepath.Join(artifacts.BaseDir(), "logs"),
 		BuildOptions: &options.BuildOptions{
 			CommonBuildOptions: &build.Options{
 				Builder:         &build.NoopBuilder{},
