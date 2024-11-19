@@ -19,7 +19,7 @@ BUILD_FLAGS=-trimpath -ldflags="-buildid= -X=github.com/ppc64le-cloud/kubetest2-
 
 install-deployer-tf:
 	git submodule update --init
-	go build -v $(BUILD_FLAGS) -o $(OUT_DIR)/$(BINARY_NAME) $(BINARY_PATH)
+	go build $(BUILD_FLAGS) -o $(OUT_DIR)/$(BINARY_NAME) $(BINARY_PATH)
 	$(INSTALL) -d $(INSTALL_DIR)
 	$(INSTALL) $(OUT_DIR)/$(BINARY_NAME) $(INSTALL_DIR)/$(BINARY_NAME)
 .PHONY: install-deployer-tf
