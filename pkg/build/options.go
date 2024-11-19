@@ -42,6 +42,7 @@ type Options struct {
 	VersionSuffix      string `flag:"-"`
 	UpdateLatest       bool   `flag:"~update-latest" desc:"Whether should upload the build number to the GCS"`
 	TargetBuildArch    string `flag:"~target-build-arch" desc:"Target architecture for the test artifacts for dockerized build"`
+	COSCredType        string `flag:"~cos-cred-type" desc:"IBM COS credential type(supported options: shared, cos_hmac)"`
 	Builder
 	Stager
 }
@@ -75,7 +76,7 @@ func (o *Options) implementationFromStrategy() error {
 			return fmt.Errorf("invalid stage URL")
 		}
 		if matches[1] == "cos" {
-			stager, err := NewIBMCOSStager(o.StageLocation, o.RepoRoot, o.TargetBuildArch)
+			stager, err := NewIBMCOSStager(o.StageLocation, o.RepoRoot, o.TargetBuildArch, o.COSCredType)
 			if err != nil {
 				return err
 			}

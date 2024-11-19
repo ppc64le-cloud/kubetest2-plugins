@@ -129,6 +129,7 @@ func New(opts types.Options) (types.Deployer, *pflag.FlagSet) {
 				Stager:          &build.NoopStager{},
 				Strategy:        "make",
 				TargetBuildArch: "linux/ppc64le",
+				COSCredType:     "shared",
 			},
 		},
 		RetryOnTfFailure: 1,
