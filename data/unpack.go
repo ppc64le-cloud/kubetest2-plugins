@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	//go:embed k8s-ansible powervs config.tf
+	//go:embed k8s-ansible powervs vpc config.tf
 	dir embed.FS
 )
 
