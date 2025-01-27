@@ -3,7 +3,7 @@ module github.com/ppc64le-cloud/kubetest2-plugins
 go 1.23
 
 require (
-	github.com/IBM/ibm-cos-sdk-go v1.12.0
+	github.com/IBM/ibm-cos-sdk-go v1.12.1
 	github.com/octago/sflags v0.3.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
@@ -32,7 +32,7 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/IBM/go-sdk-core/v5 v5.18.1 // indirect
+	github.com/IBM/go-sdk-core/v5 v5.18.5 // indirect
 	github.com/MakeNowJust/heredoc/v2 v2.0.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
@@ -245,14 +245,14 @@ require (
 	go.step.sm/crypto v0.44.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.19.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
