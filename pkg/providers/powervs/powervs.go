@@ -6,9 +6,10 @@ import (
 	"os"
 	"path"
 
+	"github.com/spf13/pflag"
+
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/tfvars/powervs"
-	"github.com/spf13/pflag"
 )
 
 const (
