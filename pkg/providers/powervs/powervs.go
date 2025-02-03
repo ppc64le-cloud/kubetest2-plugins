@@ -6,9 +6,10 @@ import (
 	"os"
 	"path"
 
+	"github.com/spf13/pflag"
+
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/providers"
 	"github.com/ppc64le-cloud/kubetest2-plugins/pkg/tfvars/powervs"
-	"github.com/spf13/pflag"
 )
 
 const (
@@ -50,10 +51,10 @@ func (p *Provider) BindFlags(flags *pflag.FlagSet) {
 		&p.ServiceID, "powervs-service-id", "", "IBM Cloud PowerVS service instance ID(get GUID from command: ibmcloud resource service-instances --long)",
 	)
 	flags.StringVar(
-		&p.NetworkName, "powervs-network-name", "", "Network Name(command: ibmcloud pi nets)",
+		&p.NetworkName, "powervs-network-name", "", "Network Name(command: ibmcloud pi subnet ls)",
 	)
 	flags.StringVar(
-		&p.ImageName, "powervs-image-name", "", "Image ID(command: ibmcloud pi imgs)",
+		&p.ImageName, "powervs-image-name", "", "Image ID(command: ibmcloud pi img ls)",
 	)
 	flags.Float64Var(
 		&p.Memory, "powervs-memory", 8, "Memory in GBs",
