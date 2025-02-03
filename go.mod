@@ -6,7 +6,7 @@ require (
 	github.com/IBM/ibm-cos-sdk-go v1.12.1
 	github.com/octago/sflags v0.3.1
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.6
 	k8s.io/client-go v0.31.3
 	k8s.io/cluster-bootstrap v0.31.3
 	k8s.io/klog/v2 v2.130.1
