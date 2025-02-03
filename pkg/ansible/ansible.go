@@ -2,16 +2,17 @@ package ansible
 
 import (
 	"fmt"
-	"k8s.io/klog/v2"
 	"os"
 	goexec "os/exec"
 	"path/filepath"
+
+	"k8s.io/klog/v2"
 
 	"github.com/ppc64le-cloud/kubetest2-plugins/data"
 )
 
 const (
-	ansibleDataDir    = "k8s-ansible"
+	ansibleDataDir = "k8s-ansible"
 )
 
 func Playbook(dir, inventory, extraVars, playbook string) (int, error) {
@@ -44,9 +45,5 @@ func Playbook(dir, inventory, extraVars, playbook string) (int, error) {
 }
 
 func unpackAnsible(dir string) error {
-	err := data.Unpack(dir, ansibleDataDir)
-	if err != nil {
-		return err
-	}
-	return nil
+	return data.Unpack(dir, ansibleDataDir)
 }
