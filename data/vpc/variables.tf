@@ -10,13 +10,7 @@ variable "vpc_ssh_key" {}
 
 variable "vpc_name" {
   type        = string
-  description = "(optional) Specify existing VPC name. If none is provided, it will create a new VPC named {cluster_name}-vpc"
-  default     = ""
-}
-
-variable "vpc_subnet_name" {
-  type        = string
-  description = "(optional) Specify existing subnet name. If none is provided, it will create a new subnet named {cluster_name}-subnet. This must be provided if vpc_name has been set"
+  description = "Specify VPC name. If none is provided, it will create a new VPC named {cluster_name}-vpc"
   default     = ""
 }
 
