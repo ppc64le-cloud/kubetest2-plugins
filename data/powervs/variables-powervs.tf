@@ -45,6 +45,11 @@ variable "powervs_network_name" {
   description = "PowerVS Network name to be used for the deployment"
 }
 
+variable "powervs_storage_tier" {
+  description = "PowerVS backing storage tier for boot volumes"
+  default = "tier1"
+}
+
 variable "powervs_service_id" {
   description = "PowerVS service ID"
 }
