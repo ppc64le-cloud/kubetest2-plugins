@@ -1,5 +1,5 @@
 resource "ibm_is_vpc" "vpc" {
-  name                        = "${var.cluster_name}-vpc"
+  name                        = "${var.vpc_name}"
   default_security_group_name = "${var.cluster_name}-security-group"
   resource_group              = var.resource_group
 }
