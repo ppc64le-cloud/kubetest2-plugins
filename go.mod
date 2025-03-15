@@ -1,6 +1,9 @@
 module github.com/ppc64le-cloud/kubetest2-plugins
 
-go 1.23
+go 1.23.0
+
+toolchain go1.23.3
+
 require (
 	github.com/IBM/ibm-cos-sdk-go v1.12.1
 	github.com/octago/sflags v0.3.1
